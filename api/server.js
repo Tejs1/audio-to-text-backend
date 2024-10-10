@@ -37,6 +37,12 @@ app.get("/credentials", (req, res) => {
 	res.send(process.env.GOOGLE_CLIENT_EMAIL || "{}")
 })
 
+app.get("/ping", (req, res) => {
+	res.statusCode = 200
+	res.setHeader("Content-Type", "text/plain")
+	res.end("pong")
+})
+
 const speechClient = new speech.SpeechClient({
 	credentials: {
 		client_email: process.env.GOOGLE_CLIENT_EMAIL,
