@@ -117,8 +117,8 @@ server.listen(8081, () => {
 
 const encoding = "LINEAR16"
 const sampleRateHertz = 16000
-const languageCode = "ko-KR" //en-US
-const alternativeLanguageCodes = ["en-US", "ko-KR"]
+const languageCode = "en-US" //en-US
+const alternativeLanguageCodes = ["en-US", "en-In"]
 
 const request = {
 	config: {
@@ -131,8 +131,8 @@ const request = {
 		enableSpeakerDiarization: true,
 		//diarizationSpeakerCount: 2,
 		//model: "video",
-		model: "command_and_search",
-		//model: "default",
+		// model: "command_and_search",
+		model: "default",
 		useEnhanced: true,
 	},
 	interimResults: true,
