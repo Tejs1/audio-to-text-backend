@@ -28,7 +28,14 @@ const io = new Server(server, {
 	},
 })
 
-// process.env.GOOGLE_APPLICATION_CREDENTIALS = "./key.json"
+// /frontend retun url
+app.get("/frontend", (req, res) => {
+	res.send(process.env.FRONTEND_URL)
+})
+
+app.get("/credentials", (req, res) => {
+	res.send(JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS || "{}"))
+})
 
 const speechClient = new speech.SpeechClient({
 	credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS || "{}"),
