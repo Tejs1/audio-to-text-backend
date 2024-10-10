@@ -1,14 +1,24 @@
-require("dotenv").config()
 const express = require("express")
-const http = require("http")
-const { Server } = require("socket.io")
 const speech = require("@google-cloud/speech")
+
+const logger = require("morgan")
+
+const bodyParser = require("body-parser")
+
 const cors = require("cors")
 
+const http = require("http")
+const { Server } = require("socket.io")
+
 const app = express()
+
 app.use(cors())
+app.use(logger("dev"))
+
+app.use(bodyParser.json())
 
 const server = http.createServer(app)
+
 const io = new Server(server, {
 	cors: {
 		origin: "http://localhost:3000",
@@ -16,52 +26,36 @@ const io = new Server(server, {
 	},
 })
 
-const speechClient = new speech.SpeechClient({
-	keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-})
+process.env.GOOGLE_APPLICATION_CREDENTIALS = "./key.json"
 
-const request = {
-	config: {
-		encoding: "LINEAR16",
-		sampleRateHertz: 16000,
-		languageCode: "en-US",
-		enableWordTimeOffsets: true,
-		enableAutomaticPunctuation: true,
-		enableWordConfidence: true,
-		enableSpeakerDiarization: true,
-		useEnhanced: true,
-		model: "command_and_search",
-	},
-	interimResults: true,
-}
+const speechClient = new speech.SpeechClient()
 
 io.on("connection", socket => {
+	let recognizeStream = null
 	console.log("** a user connected - " + socket.id + " **\n")
 
-	let recognizeStream = null
-
 	socket.on("disconnect", () => {
-		console.log("** user disconnected **\n")
+		console.log("** user disconnected ** \n")
 	})
 
 	socket.on("send_message", message => {
 		console.log("message: " + message)
 		setTimeout(() => {
-			socket.emit("receive_message", "got this message: " + message)
+			io.emit("receive_message", "got this message" + message)
 		}, 1000)
 	})
 
-	socket.on("startGoogleCloudStream", () => {
-		startRecognitionStream(socket)
+	socket.on("startGoogleCloudStream", function (data) {
+		startRecognitionStream(this, data)
 	})
 
-	socket.on("endGoogleCloudStream", () => {
+	socket.on("endGoogleCloudStream", function () {
 		console.log("** ending google cloud stream **\n")
 		stopRecognitionStream()
 	})
 
 	socket.on("send_audio_data", async audioData => {
-		socket.emit("receive_message", "Got audio data")
+		io.emit("receive_message", "Got audio data")
 		if (recognizeStream !== null) {
 			try {
 				recognizeStream.write(audioData.audio)
@@ -94,7 +88,10 @@ io.on("connection", socket => {
 						isFinal: isFinal,
 					})
 
-					if (data.results[0]?.isFinal) {
+					// if end of utterance, let's restart stream
+					// this is a small hack to keep restarting the stream on the server and keep the connection with Google api
+					// Google api disconects the stream every five minutes
+					if (data.results[0] && data.results[0].isFinal) {
 						stopRecognitionStream()
 						startRecognitionStream(client)
 						console.log("restarted stream serverside")
@@ -114,7 +111,29 @@ io.on("connection", socket => {
 	}
 })
 
-const PORT = process.env.PORT || 8081
-server.listen(PORT, () => {
-	console.log(`Server is running on port ${PORT}`)
+server.listen(8081, () => {
+	console.log("WebSocket server listening on port 8081.")
 })
+
+const encoding = "LINEAR16"
+const sampleRateHertz = 16000
+const languageCode = "ko-KR" //en-US
+const alternativeLanguageCodes = ["en-US", "ko-KR"]
+
+const request = {
+	config: {
+		encoding: encoding,
+		sampleRateHertz: sampleRateHertz,
+		languageCode: "en-US",
+		enableWordTimeOffsets: true,
+		enableAutomaticPunctuation: true,
+		enableWordConfidence: true,
+		enableSpeakerDiarization: true,
+		//diarizationSpeakerCount: 2,
+		//model: "video",
+		model: "command_and_search",
+		//model: "default",
+		useEnhanced: true,
+	},
+	interimResults: true,
+}
