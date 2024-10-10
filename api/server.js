@@ -34,11 +34,14 @@ app.get("/frontend", (req, res) => {
 })
 
 app.get("/credentials", (req, res) => {
-	res.send(JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS || "{}"))
+	res.send(JSON.parse(process.env.GOOGLE_CLIENT_EMAIL || "{}"))
 })
 
 const speechClient = new speech.SpeechClient({
-	credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS || "{}"),
+	credentials: {
+		client_email: process.env.GOOGLE_CLIENT_EMAIL,
+		private_key: process.env.GOOGLE_PRIVATE_KEY,
+	},
 })
 
 io.on("connection", socket => {
