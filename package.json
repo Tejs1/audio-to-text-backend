@@ -2,19 +2,21 @@
 	"name": "audio-to-text-backend",
 	"version": "1.0.0",
 	"description": "",
-	"main": "server.js",
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"scripts": {
-		"start": "node index.js",
-		"dev": "nodemon index.js -w"
+		"dev": "nodemon api/server.js -w",
+		"start": "node api/server.js",
+		"build": "echo 'No build step required'"
 	},
 	"dependencies": {
 		"@google-cloud/speech": "^5.1.0",
 		"@google-cloud/storage": "^6.8.0",
+		"@vercel/node": "^3.2.22",
 		"body-parser": "^1.20.1",
 		"cors": "^2.8.5",
+		"dotenv": "^16.4.5",
 		"express": "^4.18.2",
 		"morgan": "^1.10.0",
 		"socket-io": "^1.0.0",

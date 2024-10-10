@@ -1,3 +1,5 @@
+const dotenv = require("dotenv")
+dotenv.config()
 const express = require("express")
 const speech = require("@google-cloud/speech")
 
@@ -21,14 +23,16 @@ const server = http.createServer(app)
 
 const io = new Server(server, {
 	cors: {
-		origin: "http://localhost:3000",
+		origin: process.env.FRONTEND_URL,
 		methods: ["GET", "POST"],
 	},
 })
 
-process.env.GOOGLE_APPLICATION_CREDENTIALS = "./key.json"
+// process.env.GOOGLE_APPLICATION_CREDENTIALS = "./key.json"
 
-const speechClient = new speech.SpeechClient()
+const speechClient = new speech.SpeechClient({
+	credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS || "{}"),
+})
 
 io.on("connection", socket => {
 	let recognizeStream = null
