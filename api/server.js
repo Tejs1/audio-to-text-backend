@@ -34,7 +34,7 @@ app.get("/frontend", (req, res) => {
 })
 
 app.get("/credentials", (req, res) => {
-	res.send(JSON.parse(process.env.GOOGLE_CLIENT_EMAIL || "{}"))
+	res.send(process.env.GOOGLE_CLIENT_EMAIL || "{}")
 })
 
 const speechClient = new speech.SpeechClient({
